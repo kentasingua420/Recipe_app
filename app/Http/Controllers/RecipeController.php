@@ -83,7 +83,7 @@ class RecipeController extends Controller
         if ($request->hasFile('image')) {
             $imageData = base64_encode(file_get_contents($request->file('image')->getRealPath()));
             $response = Http::post('https://api.imgbb.com/1/upload', [
-                'key' => env('558e600fd7f51a436a0e79d6a8d8f839'),
+                'key' => env('IMGBB_API_KEY'),
                 'image' => $imageData,
             ]);
             $validated['image'] = $response->json()['data']['url'];
@@ -143,7 +143,7 @@ class RecipeController extends Controller
         if ($request->hasFile('image')) {
             $imageData = base64_encode(file_get_contents($request->file('image')->getRealPath()));
             $response = Http::post('https://api.imgbb.com/1/upload', [
-                'key' => env('558e600fd7f51a436a0e79d6a8d8f839'),
+                'key' => env('IMGBB_API_KEY'),
                 'image' => $imageData,
             ]);
             $validated['image'] = $response->json()['data']['url'];
