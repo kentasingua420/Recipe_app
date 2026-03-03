@@ -17,7 +17,6 @@ class RecipeController extends Controller
         $query = Recipe::with(['user', 'category'])
             ->where('status', 'approved');
 
-        // Search
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -26,7 +25,6 @@ class RecipeController extends Controller
             });
         }
 
-        // Filter by category
         if ($request->has('category')) {
             $query->where('category_id', $request->category);
         }
@@ -82,10 +80,20 @@ class RecipeController extends Controller
         $validated['status'] = 'pending';
 
         // Handle image upload
-       if ($request->hasFile('image')) {
-    $uploaded = cloudinary()->upload($request->file('image')->getRealPath());
-    $validated['image'] = $uploaded->getSecurePath();
-}
+        if ($request->hasFile('image')) {
+            \Cloudinary\Configuration\Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key' => env('CLOUDINARY_API_KEY'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                ],
+                'url' => ['secure' => true]
+            ]);
+            $result = (new \Cloudinary\Api\Upload\UploadApi())->upload(
+                $request->file('image')->getRealPath()
+            );
+            $validated['image'] = $result['secure_url'];
+        }
 
         Recipe::create($validated);
 
@@ -135,13 +143,23 @@ class RecipeController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['title']);
-        $validated['status'] = 'pending'; // Reset to pending after edit
+        $validated['status'] = 'pending';
 
         // Handle image upload
         if ($request->hasFile('image')) {
-    $uploaded = cloudinary()->upload($request->file('image')->getRealPath());
-    $validated['image'] = $uploaded->getSecurePath();
-}
+            \Cloudinary\Configuration\Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key' => env('CLOUDINARY_API_KEY'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                ],
+                'url' => ['secure' => true]
+            ]);
+            $result = (new \Cloudinary\Api\Upload\UploadApi())->upload(
+                $request->file('image')->getRealPath()
+            );
+            $validated['image'] = $result['secure_url'];
+        }
 
         $recipe->update($validated);
 
@@ -154,8 +172,6 @@ class RecipeController extends Controller
         $recipe = Recipe::where('id', $id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
-
-        
 
         $recipe->delete();
 
