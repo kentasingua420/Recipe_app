@@ -6,7 +6,7 @@ use App\Models\Recipe;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class RecipeController extends Controller
@@ -81,18 +81,12 @@ class RecipeController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            \Cloudinary\Configuration\Configuration::instance([
-                'cloud' => [
-                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                    'api_key' => env('CLOUDINARY_API_KEY'),
-                    'api_secret' => env('CLOUDINARY_API_SECRET'),
-                ],
-                'url' => ['secure' => true]
+            $imageData = base64_encode(file_get_contents($request->file('image')->getRealPath()));
+            $response = Http::post('https://api.imgbb.com/1/upload', [
+                'key' => env('558e600fd7f51a436a0e79d6a8d8f839'),
+                'image' => $imageData,
             ]);
-            $result = (new \Cloudinary\Api\Upload\UploadApi())->upload(
-                $request->file('image')->getRealPath()
-            );
-            $validated['image'] = $result['secure_url'];
+            $validated['image'] = $response->json()['data']['url'];
         }
 
         Recipe::create($validated);
@@ -147,18 +141,12 @@ class RecipeController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            \Cloudinary\Configuration\Configuration::instance([
-                'cloud' => [
-                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                    'api_key' => env('CLOUDINARY_API_KEY'),
-                    'api_secret' => env('CLOUDINARY_API_SECRET'),
-                ],
-                'url' => ['secure' => true]
+            $imageData = base64_encode(file_get_contents($request->file('image')->getRealPath()));
+            $response = Http::post('https://api.imgbb.com/1/upload', [
+                'key' => env('558e600fd7f51a436a0e79d6a8d8f839'),
+                'image' => $imageData,
             ]);
-            $result = (new \Cloudinary\Api\Upload\UploadApi())->upload(
-                $request->file('image')->getRealPath()
-            );
-            $validated['image'] = $result['secure_url'];
+            $validated['image'] = $response->json()['data']['url'];
         }
 
         $recipe->update($validated);
