@@ -82,9 +82,10 @@ class RecipeController extends Controller
         $validated['status'] = 'pending';
 
         // Handle image upload
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('recipes', 'public');
-        }
+       if ($request->hasFile('image')) {
+    $uploaded = cloudinary()->upload($request->file('image')->getRealPath());
+    $validated['image'] = $uploaded->getSecurePath();
+}
 
         Recipe::create($validated);
 
@@ -138,12 +139,9 @@ class RecipeController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            // Delete old image
-            if ($recipe->image) {
-                Storage::disk('public')->delete($recipe->image);
-            }
-            $validated['image'] = $request->file('image')->store('recipes', 'public');
-        }
+    $uploaded = cloudinary()->upload($request->file('image')->getRealPath());
+    $validated['image'] = $uploaded->getSecurePath();
+}
 
         $recipe->update($validated);
 
@@ -157,10 +155,7 @@ class RecipeController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        // Delete image
-        if ($recipe->image) {
-            Storage::disk('public')->delete($recipe->image);
-        }
+        
 
         $recipe->delete();
 
